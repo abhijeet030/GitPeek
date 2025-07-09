@@ -91,7 +91,6 @@ class RepoTableViewCell: UITableViewCell {
         verticalStack.addArrangedSubview(descriptionLabel)
         verticalStack.addArrangedSubview(statsStack)
 
-        // Padding for the entire cell (contentView -> containerView)
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),

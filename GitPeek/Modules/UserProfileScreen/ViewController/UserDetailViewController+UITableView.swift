@@ -14,7 +14,7 @@ extension UserDetailViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard indexPath.row < viewModel.repositories.count else {
-            return UITableViewCell() // return an empty cell if index is invalid
+            return UITableViewCell()
         }
 
         let repo = viewModel.repositories[indexPath.row]

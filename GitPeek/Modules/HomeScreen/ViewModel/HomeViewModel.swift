@@ -14,6 +14,7 @@ final class HomeViewModel {
     let titleText = "GitPeek"
     let searchPlaceholder = "Search GitHub Users"
     var onUsersUpdated: (([User]) -> Void)?
+    var onSearchResultEmpty: (() -> Void)?
 
     var users: [User] = [] {
         didSet {
@@ -79,9 +80,12 @@ final class HomeViewModel {
                         bookmarkedUsers.first(where: { $0.login == user.login }) ?? user
                     }
                     self.users = enrichedUsers
+                    
+                    if enrichedUsers.isEmpty {
+                        self.onSearchResultEmpty?()
+                    }
 
                 case .failure(let error):
-                    print("❌ API Error: \(error)")
                     self.fallbackToLocalSearch(query: query)
                 }
             }

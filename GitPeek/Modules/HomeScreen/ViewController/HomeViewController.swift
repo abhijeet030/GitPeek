@@ -164,7 +164,7 @@ class HomeViewController: UIViewController {
     }
 
     private func currentToggleIcon() -> String {
-        return overrideUserInterfaceStyle == .dark ? "sun.max.fill" : "moon.fill"
+        return traitCollection.userInterfaceStyle == .dark ? "sun.max.fill" : "moon.fill"
     }
 
     @objc private func toggleMode() {
@@ -174,8 +174,6 @@ class HomeViewController: UIViewController {
 
         // Optional: update root window if needed
         UIApplication.shared.windows.first?.overrideUserInterfaceStyle = newStyle
-
-        tableView.reloadData()
     }
     
     // MARK: -  Data Refresh
@@ -190,6 +188,19 @@ class HomeViewController: UIViewController {
                 }
             }
         }
+        
+        viewModel.onSearchResultEmpty = { [weak self] in
+            self?.showNoResultsAlert()
+        }
     }
 
+    // MARK: -  No User Found Alert
+    
+    private func showNoResultsAlert() {
+        let alert = UIAlertController(title: "No Users Found",
+                                      message: "We couldn’t find any users matching your search.",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }

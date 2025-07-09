@@ -10,6 +10,7 @@ import Foundation
 class UserDetailViewModel {
     
     // MARK: - Properties
+    
     private(set) var user: User {
         didSet {
             onUserDataUpdated?(user)
@@ -40,8 +41,9 @@ class UserDetailViewModel {
     private var canLoadMore = true
 
     // MARK: - API Call: Repositories
+    
     func fetchPublicRepositories(reset: Bool = false) {
-        guard !isLoadingMore else { return } // 🛑 prevent duplicate calls
+        guard !isLoadingMore else { return }
         isLoadingMore = true
 
         if NetworkMonitor.shared.isConnected {
@@ -52,7 +54,7 @@ class UserDetailViewModel {
     }
     
     private func fallbackToLocalFetchReposrity() {
-        defer { isLoadingMore = false } // ✅ ensure flag is reset even if no data
+        defer { isLoadingMore = false }
         guard let bookmarkedUser = CoreDataManager.shared.fetchBookmarkedUser(by: user.login),
               let storedRepos = bookmarkedUser.repositories as? Set<Repository> else {
             print("No local data found for user \(user.login)")
@@ -114,10 +116,11 @@ class UserDetailViewModel {
     }
 
     // MARK: - API Call: User Details
+    
     private var isFetchingUserData = false
 
     func fetchUserData() {
-        guard !isFetchingUserData else { return } // ✅ prevent multiple fetches
+        guard !isFetchingUserData else { return }
         isFetchingUserData = true
 
         let detailURL = "https://api.github.com/users/\(user.login)"
