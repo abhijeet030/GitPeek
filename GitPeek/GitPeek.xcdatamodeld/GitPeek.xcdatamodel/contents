@@ -4,7 +4,12 @@
         <attribute name="avatar_url" optional="YES" attributeType="String"/>
         <attribute name="bio" optional="YES" attributeType="String"/>
         <attribute name="followers" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="login" optional="YES" attributeType="String"/>
+        <attribute name="login" attributeType="String"/>
         <attribute name="public_repos" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="login"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
 </model>

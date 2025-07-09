@@ -40,6 +40,7 @@ class UserDetailViewController: UIViewController {
         setupUI()
         applyTheme()
         setupTableView()
+        bindViewModel()
         viewModel.fetchPublicRepositories()
     }
 

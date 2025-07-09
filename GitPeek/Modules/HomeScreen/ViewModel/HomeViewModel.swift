@@ -7,12 +7,13 @@
 
 import Foundation
 
-class HomeViewModel {
+final class HomeViewModel {
+
+    // MARK: - Public Properties
 
     let titleText = "GitPeek"
     let searchPlaceholder = "Search GitHub Users"
-    private var hasSearched = false
-
+    var onUsersUpdated: (([User]) -> Void)?
 
     var users: [User] = [] {
         didSet {
@@ -20,44 +21,30 @@ class HomeViewModel {
         }
     }
 
-    func loadBookmarkedUsers() {
-        let bookmarks = CoreDataManager.shared.fetchAllBookmarks()
+    // MARK: - Private Properties
 
-        guard !bookmarks.isEmpty else {
-            users = []
-            return
-        }
-
-        users = bookmarks.map {
-            User(
-                login: $0.login ?? "",
-                avatar_url: $0.avatar_url ?? "",
-                bio: $0.bio,
-                followers: Int($0.followers),
-                public_repos: Int($0.public_repos),
-                isBookmarked: true
-            )
-        }
-    }
-    
-    var onUsersUpdated: (([User]) -> Void)?
-
+    private var hasSearched = false
+    private var hasExecutedDebounce = false
     private var debounceWorkItem: DispatchWorkItem?
-    private var hasExecutedDebounce: Bool = false
+    private let bookmarkQueue = DispatchQueue(label: "com.gitpeek.bookmarkQueue")
+
+    // MARK: - Search Entry Point
 
     func filterContent(with query: String) {
         if !hasSearched {
-            self.users = []
+            users = []
         }
-        
+
         if NetworkMonitor.shared.isConnected {
-            filterContentOnline(with: query)
+            debounceOnlineSearch(query)
         } else {
-            fallbackToLocalSearch(for: query)
+            fallbackToLocalSearch(query: query)
         }
     }
-    
-    private func filterContentOnline(with query: String) {
+
+    // MARK: - Debounced API Search
+
+    private func debounceOnlineSearch(_ query: String) {
         debounceWorkItem?.cancel()
         hasExecutedDebounce = false
 
@@ -67,50 +54,47 @@ class HomeViewModel {
         }
 
         debounceWorkItem = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: task)
     }
-    
-    
 
     private func performSearch(query: String) {
         hasSearched = true
 
         guard !query.isEmpty else {
-            self.users = []
+            users = []
             return
         }
 
-        let queryEscaped = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlStr = "https://api.github.com/search/users?q=\(queryEscaped)"
+        let escapedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlStr = "https://api.github.com/search/users?q=\(escapedQuery)"
+        let bookmarkedUsers = fetchBookmarkedUsers()
 
         NetworkManager.shared.request(urlString: urlStr) { [weak self] (result: Result<SearchResult, NetworkManager.NetworkError>) in
             DispatchQueue.main.async {
+                guard let self = self else { return }
+
                 switch result {
                 case .success(let data):
-                    let bookmarks = CoreDataManager.shared.fetchAllBookmarks()
-                    let bookmarkedLogins = Set(bookmarks.compactMap { $0.login })
-
-                    let enriched = data.items.map { user -> User in
-                        var enrichedUser = user
-                        enrichedUser.isBookmarked = bookmarkedLogins.contains(user.login)
-                        return enrichedUser
+                    let enrichedUsers = data.items.map { user in
+                        bookmarkedUsers.first(where: { $0.login == user.login }) ?? user
                     }
+                    self.users = enrichedUsers
 
-                    self?.users = enriched
                 case .failure(let error):
-                    print("Error: \(error)")
-                    self?.fallbackToLocalSearch(for: query)
+                    print("❌ API Error: \(error)")
+                    self.fallbackToLocalSearch(query: query)
                 }
             }
         }
     }
-    
-    private func fallbackToLocalSearch(for query: String) {
-        let bookmarks = CoreDataManager.shared.fetchAllBookmarks()
 
-        let filtered = bookmarks.filter { user in
-            let name = user.login?.lowercased() ?? ""
-            return name.contains(query.lowercased())
+    // MARK: - Local Bookmarks Fallback
+
+    private func fallbackToLocalSearch(query: String) {
+        let allBookmarks = CoreDataManager.shared.fetchAllBookmarks()
+
+        let filtered = allBookmarks.filter {
+            ($0.login?.lowercased().contains(query.lowercased()) ?? false)
         }
 
         self.users = filtered.map {
@@ -125,42 +109,65 @@ class HomeViewModel {
         }
     }
 
-    private struct SearchResult: Decodable {
-        let items: [User]
-    }
-    
-    func clearSearchData() {
-        hasSearched = false
-        loadBookmarkedUsers()
-        
-        if hasExecutedDebounce == false {
-            debounceWorkItem?.cancel()
+    private func fetchBookmarkedUsers() -> [User] {
+        let bookmarks = CoreDataManager.shared.fetchAllBookmarks()
+
+        return bookmarks.map {
+            User(
+                login: $0.login ?? "",
+                avatar_url: $0.avatar_url ?? "",
+                bio: $0.bio,
+                followers: Int($0.followers),
+                public_repos: Int($0.public_repos),
+                isBookmarked: true
+            )
         }
     }
 
-    private let bookmarkQueue = DispatchQueue(label: "com.gitpeek.bookmarkQueue")
-    
+    // MARK: - Bookmarks Management
+
+    func loadBookmarkedUsers() {
+        let bookmarks = CoreDataManager.shared.fetchAllBookmarks()
+
+        guard !bookmarks.isEmpty else {
+            users = []
+            return
+        }
+
+        self.users = bookmarks.map {
+            User(
+                login: $0.login ?? "",
+                avatar_url: $0.avatar_url ?? "",
+                bio: $0.bio,
+                followers: Int($0.followers),
+                public_repos: Int($0.public_repos),
+                isBookmarked: true
+            )
+        }
+    }
+
     func saveBookMarkedUser(_ user: User) {
         bookmarkQueue.async { [weak self] in
             guard self != nil else { return }
 
             let detailURL = "https://api.github.com/users/\(user.login)"
-
             let semaphore = DispatchSemaphore(value: 0)
 
             NetworkManager.shared.request(urlString: detailURL) { (result: Result<User, NetworkManager.NetworkError>) in
-                switch result {
-                case .success(let fullUser):
-                    var enrichedUser = fullUser
-                    enrichedUser.isBookmarked = true
-                    CoreDataManager.shared.saveBookmark(enrichedUser)
+                let userToSave: User
 
-                case .failure(let error):
-                    print("⚠️ Failed to fetch full user details: \(error.localizedDescription)")
+                switch result {
+                case .success(var fullUser):
+                    fullUser.isBookmarked = true
+                    userToSave = fullUser
+
+                case .failure:
                     var fallbackUser = user
                     fallbackUser.isBookmarked = true
-                    CoreDataManager.shared.saveBookmark(fallbackUser)
+                    userToSave = fallbackUser
                 }
+
+                CoreDataManager.shared.saveBookmark(userToSave)
                 semaphore.signal()
             }
 
@@ -168,9 +175,25 @@ class HomeViewModel {
         }
     }
 
-    
     func removeBookMarkedUser(_ user: User) {
         CoreDataManager.shared.removeBookmark(login: user.login)
         loadBookmarkedUsers()
+    }
+
+    // MARK: - Reset State
+
+    func clearSearchData() {
+        hasSearched = false
+        loadBookmarkedUsers()
+
+        if !hasExecutedDebounce {
+            debounceWorkItem?.cancel()
+        }
+    }
+
+    // MARK: - Network Response Models
+
+    private struct SearchResult: Decodable {
+        let items: [User]
     }
 }
