@@ -6,10 +6,21 @@
         <attribute name="followers" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="login" attributeType="String"/>
         <attribute name="public_repos" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="repositories" toMany="YES" deletionRule="Nullify" destinationEntity="Repository" inverseName="user" inverseEntity="Repository"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="login"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
+    </entity>
+    <entity name="Repository" representedClassName="Repository" syncable="YES" codeGenerationType="class">
+        <attribute name="forks_count" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="html_url" attributeType="String"/>
+        <attribute name="language" optional="YES" attributeType="String"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="repoDescription" optional="YES" attributeType="String"/>
+        <attribute name="stargazers_count" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="watchers_count" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="BookmarkedUser" inverseName="repositories" inverseEntity="BookmarkedUser"/>
     </entity>
 </model>

@@ -13,6 +13,10 @@ extension UserDetailViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard indexPath.row < viewModel.repositories.count else {
+            return UITableViewCell() // return an empty cell if index is invalid
+        }
+
         let repo = viewModel.repositories[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: RepoTableViewCell.identifier, for: indexPath) as! RepoTableViewCell
         cell.configure(with: repo)

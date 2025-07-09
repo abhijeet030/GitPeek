@@ -107,7 +107,7 @@ class RepoTableViewCell: UITableViewCell {
 
     // MARK: - Configuration
 
-    func configure(with repo: Repository) {
+    func configure(with repo: RepositoryModel) {
         nameLabel.text = repo.name
         descriptionLabel.text = repo.description ?? "No description available"
         starLabel.text = "⭐ \(repo.stargazers_count)"
