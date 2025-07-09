@@ -1,0 +1,37 @@
+# Xcode
+#
+build/
+DerivedData/
+.build/
+.swiftpm/
+
+# CocoaPods
+#
+Pods/
+Podfile.lock
+project.xcworkspace
+
+# Archives
+#
+*.xcarchive
+
+# Provisioning profiles
+#
+*.mobileprovision
+
+# App packages
+#
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# SwiftUI previews
+.swiftUIPreview/
+
+# User-specific files
+#
+*.moved-aside
+*.xcuserstate
+*.idea/
+*.DS_Store
+
