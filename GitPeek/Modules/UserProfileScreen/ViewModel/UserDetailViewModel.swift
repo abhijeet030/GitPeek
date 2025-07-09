@@ -102,7 +102,7 @@ class UserDetailViewModel {
                     } else {
                         self.repositories += repos
                         if self.user.isBookmarked {
-                            CoreDataManager.shared.saveRepositoriesToCoreData(for: self.user, repos: self.repositories)
+                            CoreDataManager.shared.saveBookmark(self.user, repositories: self.repositories)
                         }
                         self.currentPage += 1
                     }
@@ -120,7 +120,7 @@ class UserDetailViewModel {
     private var isFetchingUserData = false
 
     func fetchUserData() {
-        guard !isFetchingUserData else { return }
+        guard !isFetchingUserData, NetworkMonitor.shared.isConnected else { return }
         isFetchingUserData = true
 
         let detailURL = "https://api.github.com/users/\(user.login)"
@@ -131,10 +131,6 @@ class UserDetailViewModel {
 
                 switch result {
                 case .success(var fullUser):
-                    if self.user.isBookmarked {
-                        fullUser.isBookmarked = true
-                        CoreDataManager.shared.saveBookmark(fullUser)
-                    }
                     self.user = fullUser
 
                 case .failure(let error):

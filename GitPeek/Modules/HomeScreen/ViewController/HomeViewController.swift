@@ -182,10 +182,6 @@ class HomeViewController: UIViewController {
         viewModel.onUsersUpdated = { [weak self] users in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
-                print("Fetched \(users.count) users")
-                for user in users {
-                    print("Fetched \(user.login) username")
-                }
             }
         }
         

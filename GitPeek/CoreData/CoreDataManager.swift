@@ -38,8 +38,10 @@ class CoreDataManager {
             bookmark.followers = Int64(user.followers ?? 0)
             bookmark.public_repos = Int64(user.public_repos ?? 0)
             
-            if let existingRepos = bookmark.repositories as? Set<Repository> {
-                existingRepos.forEach { context.delete($0) }
+            if !repositories.isEmpty {
+                if let existingRepos = bookmark.repositories as? Set<Repository> {
+                    existingRepos.forEach { context.delete($0) }
+                }
             }
             
             repositories.forEach { repoModel in
@@ -54,33 +56,6 @@ class CoreDataManager {
                 repo.user = bookmark
             }
             
-            self.save(context: context)
-        }
-    }
-
-    func saveRepositoriesToCoreData(for user: User, repos: [RepositoryModel]) {
-        persistentContainer.performBackgroundTask { context in
-            guard let bookmarkedUser = self.fetchBookmarkedUser(by: user.login, in: context) else {
-                print("No bookmarked user found for login: \(user.login)")
-                return
-            }
-
-            if let existingRepos = bookmarkedUser.repositories as? Set<Repository> {
-                existingRepos.forEach { context.delete($0) }
-            }
-
-            repos.forEach { repoModel in
-                let repo = Repository(context: context)
-                repo.name = repoModel.name
-                repo.html_url = repoModel.html_url
-                repo.repoDescription = repoModel.description
-                repo.language = repoModel.language
-                repo.stargazers_count = Int64(repoModel.stargazers_count)
-                repo.forks_count = Int64(repoModel.forks_count)
-                repo.watchers_count = Int64(repoModel.watchers_count)
-                repo.user = bookmarkedUser
-            }
-
             self.save(context: context)
         }
     }
