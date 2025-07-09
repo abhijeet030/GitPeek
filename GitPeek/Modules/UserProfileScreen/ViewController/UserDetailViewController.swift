@@ -9,21 +9,87 @@ import SDWebImage
 
 class UserDetailViewController: UIViewController {
 
+    // MARK: - Properties
+    
     private let user: User
-    private var viewModel: UserDetailViewModel!
+    public var viewModel: UserDetailViewModel!
 
-    // UI Elements
-    private let cardView = UIView()
-    private let imageBackgroundCircle = UIView()
-    private let profileImageView = UIImageView()
-    private let nameLabel = UILabel()
-    private let bioLabel = UILabel()
-    private let followersLabel = UILabel()
-    private let repoCountLabel = UILabel()
-    private let repoCollectionLabel = UILabel()
-    private let tableView = UITableView()
+    // MARK: - UI Elements
+    
+    private let cardView: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
+    private let imageBackgroundCircle: UIView = {
+        let view = UIView()
+        view.layer.cornerRadius = 40
+        view.clipsToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private let profileImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.layer.cornerRadius = 40
+        imageView.clipsToBounds = true
+        imageView.contentMode = .scaleAspectFill
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    private let nameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .boldSystemFont(ofSize: 20)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let bioLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 15)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let followersLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let repoCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let repoCollectionLabel: UILabel = {
+        let label = UILabel()
+        label.font = .boldSystemFont(ofSize: 16)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let tableView: UITableView = {
+        let tableView = UITableView()
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 80
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.backgroundColor = .clear
+        return tableView
+    }()
+
+    private let refreshControl = UIRefreshControl()
     // MARK: - Init
+    
     init(user: User) {
         self.user = user
         self.viewModel = UserDetailViewModel(user: user)
@@ -35,12 +101,15 @@ class UserDetailViewController: UIViewController {
     }
 
     // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        updateUserDetails()
         setupUI()
         applyTheme()
         setupTableView()
         bindViewModel()
+        viewModel.fetchUserData()
         viewModel.fetchPublicRepositories()
     }
 
@@ -58,44 +127,20 @@ class UserDetailViewController: UIViewController {
     }
 
     // MARK: - Setup UI
+    
     private func setupUI() {
         view.backgroundColor = AppColor.background
-        
-        
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        repoCollectionLabel.translatesAutoresizingMaskIntoConstraints = false
-        tableView.translatesAutoresizingMaskIntoConstraints = false
 
-        imageBackgroundCircle.translatesAutoresizingMaskIntoConstraints = false
-        profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        bioLabel.translatesAutoresizingMaskIntoConstraints = false
-        followersLabel.translatesAutoresizingMaskIntoConstraints = false
-        repoCountLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        imageBackgroundCircle.translatesAutoresizingMaskIntoConstraints = false
-        imageBackgroundCircle.layer.cornerRadius = 40
-        imageBackgroundCircle.clipsToBounds = true
-
-        profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        profileImageView.layer.cornerRadius = 40
-        profileImageView.clipsToBounds = true
-        profileImageView.contentMode = .scaleAspectFill
         if let url = URL(string: user.avatar_url) {
             profileImageView.sd_setImage(with: url, placeholderImage: UIImage(systemName: "person.circle"))
         }
-
-        nameLabel.font = .boldSystemFont(ofSize: 20)
-        nameLabel.text = user.login
-
-        bioLabel.font = .systemFont(ofSize: 15)
-        bioLabel.text = user.bio ?? "No bio available"
-        bioLabel.numberOfLines = 0
-
-        followersLabel.font = .systemFont(ofSize: 13)
-        repoCountLabel.font = .systemFont(ofSize: 13)
-        followersLabel.text = "👥 Followers: \(user.followers ?? 0)"
-        repoCountLabel.text = "📦 Repos: \(user.public_repos ?? 0)"
+        repoCollectionLabel.text = "Repositories"
+        
+        refreshControl.tintColor = AppColor.accent // Customize the spinner color
+        refreshControl.attributedTitle = NSAttributedString(
+            string: "Refreshing...",
+            attributes: [.foregroundColor: AppColor.textSecondary, .font: UIFont.systemFont(ofSize: 12)]
+        )
 
         let statsStack = UIStackView(arrangedSubviews: [followersLabel, repoCountLabel])
         statsStack.axis = .horizontal
@@ -107,27 +152,19 @@ class UserDetailViewController: UIViewController {
         infoStack.spacing = 8
         infoStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let mainContentStack = UIStackView()
-        mainContentStack.axis = .horizontal
-        mainContentStack.spacing = 16
-        mainContentStack.translatesAutoresizingMaskIntoConstraints = false
-        mainContentStack.alignment = .top
-
         let avatarContainer = UIView()
         avatarContainer.translatesAutoresizingMaskIntoConstraints = false
         avatarContainer.addSubview(imageBackgroundCircle)
         avatarContainer.addSubview(profileImageView)
 
-        mainContentStack.addArrangedSubview(avatarContainer)
-        mainContentStack.addArrangedSubview(infoStack)
+        let mainContentStack = UIStackView(arrangedSubviews: [avatarContainer, infoStack])
+        mainContentStack.axis = .horizontal
+        mainContentStack.spacing = 16
+        mainContentStack.alignment = .top
+        mainContentStack.translatesAutoresizingMaskIntoConstraints = false
 
-        repoCollectionLabel.font = .boldSystemFont(ofSize: 16)
-        repoCollectionLabel.text = "Repositories"
-
-        cardView.translatesAutoresizingMaskIntoConstraints = false
-        cardView.layer.cornerRadius = 16
-        cardView.clipsToBounds = true
         cardView.addSubview(mainContentStack)
+
         view.addSubview(cardView)
         view.addSubview(repoCollectionLabel)
         view.addSubview(tableView)
@@ -164,19 +201,37 @@ class UserDetailViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+    
+    private func updateUserDetails() {
+        nameLabel.text = viewModel.user.login
+        bioLabel.text = viewModel.user.bio ?? "No bio available"
+        followersLabel.text = "\u{1F465} Followers: \(viewModel.user.followers ?? 0)"
+        repoCountLabel.text = "\u{1F4E6} Repos: \(viewModel.user.public_repos ?? 0)"
+    }
 
-
-
+    // MARK: - Setup TableView
+    
     private func setupTableView() {
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.register(RepoTableViewCell.self, forCellReuseIdentifier: RepoTableViewCell.identifier)
+        
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 80
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.backgroundColor = .clear
+        tableView.estimatedRowHeight = 40
+
+
+        // Pull to Refresh
+        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
+        refreshControl.tintColor = AppColor.accent
+        refreshControl.attributedTitle = NSAttributedString(
+            string: "Pulling GitHub...",
+            attributes: [.foregroundColor: AppColor.textSecondary]
+        )
+        tableView.refreshControl = refreshControl
     }
 
     // MARK: - Theme
+    
     private func applyTheme() {
         cardView.backgroundColor = AppColor.cardBackground
         imageBackgroundCircle.backgroundColor = AppColor.accent.withAlphaComponent(0.2)
@@ -187,26 +242,27 @@ class UserDetailViewController: UIViewController {
         repoCollectionLabel.textColor = AppColor.textPrimary
         view.backgroundColor = AppColor.background
     }
-    
+
+    // MARK: - ViewModel Binding
     
     private func bindViewModel() {
-        viewModel.onRepositoriesUpdated = { [weak self] repo in
+        viewModel.onRepositoriesUpdated = { [weak self] _ in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
+                self?.refreshControl.endRefreshing()
+            }
+        }
+
+        viewModel.onUserDataUpdated = { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.updateUserDetails()
             }
         }
     }
-}
-
-extension UserDetailViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.repositories.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let repo = viewModel.repositories[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: RepoTableViewCell.identifier, for: indexPath) as! RepoTableViewCell
-        cell.configure(with: repo)
-        return cell
+    
+    // MARK: - Pull to Refresh Handler
+    
+    @objc private func didPullToRefresh() {
+        viewModel.fetchPublicRepositories(reset: true)
     }
 }

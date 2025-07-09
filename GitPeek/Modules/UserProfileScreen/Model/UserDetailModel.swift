@@ -14,4 +14,5 @@ struct Repository: Decodable {
     let language: String?
     let stargazers_count: Int
     let forks_count: Int
+    let watchers_count: Int
 }
