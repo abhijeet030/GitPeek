@@ -130,7 +130,7 @@ class UserDetailViewModel {
                 self.isFetchingUserData = false
 
                 switch result {
-                case .success(var fullUser):
+                case .success(let fullUser):
                     self.user = fullUser
 
                 case .failure(let error):

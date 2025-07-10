@@ -171,8 +171,10 @@ class HomeViewController: UIViewController {
         overrideUserInterfaceStyle = newStyle
         navigationController?.overrideUserInterfaceStyle = newStyle
 
-        // Optional: update root window if needed
-        UIApplication.shared.windows.first?.overrideUserInterfaceStyle = newStyle
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.overrideUserInterfaceStyle = newStyle
+        }
     }
     
     // MARK: -  Data Refresh
