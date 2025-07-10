@@ -75,6 +75,12 @@ class HomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        let isComingBack = !isMovingToParent && !isBeingPresented
+            
+        if isComingBack && !isAlreadySearching {
+            viewModel.loadBookmarkedUsers()
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
