@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Repository: Decodable {
+struct RepositoryModel: Decodable, Equatable{
     let name: String
     let html_url: String
     let description: String?

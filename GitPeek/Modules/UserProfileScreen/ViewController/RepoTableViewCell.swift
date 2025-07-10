@@ -91,7 +91,6 @@ class RepoTableViewCell: UITableViewCell {
         verticalStack.addArrangedSubview(descriptionLabel)
         verticalStack.addArrangedSubview(statsStack)
 
-        // Padding for the entire cell (contentView -> containerView)
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
@@ -107,7 +106,7 @@ class RepoTableViewCell: UITableViewCell {
 
     // MARK: - Configuration
 
-    func configure(with repo: Repository) {
+    func configure(with repo: RepositoryModel) {
         nameLabel.text = repo.name
         descriptionLabel.text = repo.description ?? "No description available"
         starLabel.text = "⭐ \(repo.stargazers_count)"

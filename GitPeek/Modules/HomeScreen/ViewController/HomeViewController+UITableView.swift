@@ -23,10 +23,8 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
             
             cell.onBookmarkTapped = { isBookmarked in
                 if isBookmarked {
-                    print("Debug : BookMarked User \(user.login)")
                     self.viewModel.saveBookMarkedUser(user)
                 } else {
-                    print("Debug : BookMark Removed User \(user.login)")
                     self.viewModel.removeBookMarkedUser(user)
                 }
             }
@@ -39,10 +37,8 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
             
             cell.onBookmarkTapped = { isBookmarked in
                 if isBookmarked {
-                    print("Debug : BookMarked User \(user.login)")
                     self.viewModel.saveBookMarkedUser(user)
                 } else {
-                    print("Debug : BookMark Removed User \(user.login)")
                     self.viewModel.removeBookMarkedUser(user)
                 }
             }

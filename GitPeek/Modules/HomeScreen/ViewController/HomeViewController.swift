@@ -14,9 +14,8 @@ class HomeViewController: UIViewController {
     public let viewModel = HomeViewModel()
 
     private let titleImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "Logo"))
+        let imageView = UIImageView(image: UIImage(named: "Transpent-Logo"))
         imageView.contentMode = .scaleAspectFit
-        imageView.layer.cornerRadius = 16
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -76,6 +75,12 @@ class HomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        let isComingBack = !isMovingToParent && !isBeingPresented
+            
+        if isComingBack && !isAlreadySearching {
+            viewModel.loadBookmarkedUsers()
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -112,8 +117,8 @@ class HomeViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleImageView.widthAnchor.constraint(equalToConstant: 32),
-            titleImageView.heightAnchor.constraint(equalToConstant: 32),
+            titleImageView.widthAnchor.constraint(equalToConstant: 46),
+            titleImageView.heightAnchor.constraint(equalToConstant: 46),
 
             toggleButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             toggleButton.centerYAnchor.constraint(equalTo: titleImageView.centerYAnchor),
@@ -164,7 +169,7 @@ class HomeViewController: UIViewController {
     }
 
     private func currentToggleIcon() -> String {
-        return overrideUserInterfaceStyle == .dark ? "sun.max.fill" : "moon.fill"
+        return traitCollection.userInterfaceStyle == .dark ? "sun.max.fill" : "moon.fill"
     }
 
     @objc private func toggleMode() {
@@ -172,10 +177,10 @@ class HomeViewController: UIViewController {
         overrideUserInterfaceStyle = newStyle
         navigationController?.overrideUserInterfaceStyle = newStyle
 
-        // Optional: update root window if needed
-        UIApplication.shared.windows.first?.overrideUserInterfaceStyle = newStyle
-
-        tableView.reloadData()
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.overrideUserInterfaceStyle = newStyle
+        }
     }
     
     // MARK: -  Data Refresh
@@ -184,12 +189,21 @@ class HomeViewController: UIViewController {
         viewModel.onUsersUpdated = { [weak self] users in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
-                print("Fetched \(users.count) users")
-                for user in users {
-                    print("Fetched \(user.login) username")
-                }
             }
+        }
+        
+        viewModel.onSearchResultEmpty = { [weak self] in
+            self?.showNoResultsAlert()
         }
     }
 
+    // MARK: -  No User Found Alert
+    
+    private func showNoResultsAlert() {
+        let alert = UIAlertController(title: "No Users Found",
+                                      message: "We couldn’t find any users matching your search.",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
