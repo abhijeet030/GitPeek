@@ -14,9 +14,8 @@ class HomeViewController: UIViewController {
     public let viewModel = HomeViewModel()
 
     private let titleImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "Logo"))
+        let imageView = UIImageView(image: UIImage(named: "Transpent-Logo"))
         imageView.contentMode = .scaleAspectFit
-        imageView.layer.cornerRadius = 16
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -112,8 +111,8 @@ class HomeViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleImageView.widthAnchor.constraint(equalToConstant: 32),
-            titleImageView.heightAnchor.constraint(equalToConstant: 32),
+            titleImageView.widthAnchor.constraint(equalToConstant: 46),
+            titleImageView.heightAnchor.constraint(equalToConstant: 46),
 
             toggleButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             toggleButton.centerYAnchor.constraint(equalTo: titleImageView.centerYAnchor),
