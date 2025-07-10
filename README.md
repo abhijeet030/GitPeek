@@ -27,16 +27,19 @@ GitPeek is a sleek and intuitive iOS application that allows users to search and
 
 ### 🔦 Light Mode
 
-![GitPeek Dark Mode](Screenshots/Bookmarked-Light.png)
-![GitPeek Dark Mode](Screenshots/Search-Light.png)
-![GitPeek Dark Mode](Screenshots/Repo-Light.png)
+<p align="center">
+  <img src="Screenshots/Bookmarked-Light.png" width="250" />
+  <img src="Screenshots/Search-Light.png" width="250" />
+  <img src="Screenshots/Repo-Light.png" width="250" />
+</p>
 
 ### 🌑 Dark Mode
 
-![GitPeek Dark Mode](Screenshots/Bookmarked-Dark.png)
-![GitPeek Dark Mode](Screenshots/Search-Dark.png)
-![GitPeek Dark Mode](Screenshots/Repo-Dark.png)
-
+<p align="center">
+  <img src="Screenshots/Bookmarked-Dark.png" width="250" />
+  <img src="Screenshots/Search-Dark.png" width="250" />
+  <img src="Screenshots/Repo-Dark.png" width="250" />
+</p>
 
 ---
 
