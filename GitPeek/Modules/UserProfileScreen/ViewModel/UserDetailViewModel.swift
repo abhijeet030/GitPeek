@@ -13,7 +13,8 @@ class UserDetailViewModel {
     
     private(set) var user: User {
         didSet {
-            if user != oldValue {
+            if user != oldValue && oldValue.isBookmarked {
+                user.isBookmarked = true
                 CoreDataManager.shared.saveBookmark(self.user)
             }
             onUserDataUpdated?(user)
