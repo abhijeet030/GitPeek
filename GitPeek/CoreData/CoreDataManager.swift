@@ -24,6 +24,8 @@ class CoreDataManager {
     
     func saveBookmark(_ user: User, repositories: [RepositoryModel] = []) {
         persistentContainer.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
             let bookmark: BookmarkedUser
             
             if let existing = self.fetchBookmarkedUser(by: user.login, in: context) {
@@ -37,23 +39,23 @@ class CoreDataManager {
             bookmark.bio = user.bio
             bookmark.followers = Int64(user.followers ?? 0)
             bookmark.public_repos = Int64(user.public_repos ?? 0)
-            
+
             if !repositories.isEmpty {
                 if let existingRepos = bookmark.repositories as? Set<Repository> {
                     existingRepos.forEach { context.delete($0) }
                 }
-            }
-            
-            repositories.forEach { repoModel in
-                let repo = Repository(context: context)
-                repo.name = repoModel.name
-                repo.html_url = repoModel.html_url
-                repo.repoDescription = repoModel.description
-                repo.language = repoModel.language
-                repo.stargazers_count = Int64(repoModel.stargazers_count)
-                repo.forks_count = Int64(repoModel.forks_count)
-                repo.watchers_count = Int64(repoModel.watchers_count)
-                repo.user = bookmark
+
+                repositories.forEach { repoModel in
+                    let repo = Repository(context: context)
+                    repo.name = repoModel.name
+                    repo.html_url = repoModel.html_url
+                    repo.repoDescription = repoModel.description
+                    repo.language = repoModel.language
+                    repo.stargazers_count = Int64(repoModel.stargazers_count)
+                    repo.forks_count = Int64(repoModel.forks_count)
+                    repo.watchers_count = Int64(repoModel.watchers_count)
+                    repo.user = bookmark
+                }
             }
             
             self.save(context: context)
@@ -62,6 +64,7 @@ class CoreDataManager {
 
     func removeBookmark(login: String) {
         persistentContainer.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             let fetchRequest: NSFetchRequest<BookmarkedUser> = BookmarkedUser.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "login == %@", login)
             fetchRequest.fetchLimit = 1

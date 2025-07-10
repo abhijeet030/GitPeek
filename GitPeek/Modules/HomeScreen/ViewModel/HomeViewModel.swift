@@ -172,6 +172,7 @@ final class HomeViewModel {
                 }
 
                 CoreDataManager.shared.saveBookmark(userToSave)
+                self?.updateBookmarkedUserInSearchList(userToSave)
                 semaphore.signal()
             }
 
@@ -181,7 +182,20 @@ final class HomeViewModel {
 
     func removeBookMarkedUser(_ user: User) {
         CoreDataManager.shared.removeBookmark(login: user.login)
-        loadBookmarkedUsers()
+        updateBookmarkedUserInSearchList(user, isUserRemoved: true)
+        if !hasSearched {
+            loadBookmarkedUsers()
+        }
+    }
+    
+    private func updateBookmarkedUserInSearchList(_ updatedUser: User, isUserRemoved: Bool = false) {
+        if let index = users.firstIndex(where: { $0.login == updatedUser.login }) {
+            var userUpdated = updatedUser
+            if isUserRemoved {
+                userUpdated.isBookmarked = false
+            }
+            users[index] = userUpdated
+        }
     }
 
     // MARK: - Reset State
